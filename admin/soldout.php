@@ -1,10 +1,10 @@
 <?php
 // SOLD OUT: every shoe with 0 pairs left, with a quick restock button.
-require '../includes/header.php';
+require '../includes/admin_header.php';
 
 if (($_SESSION['user']['role'] ?? '') !== 'admin') {
     echo '<div class="msg err">This page is for admins only.</div>';
-    require '../includes/footer.php'; exit;
+    require '../includes/admin_footer.php'; exit;
 }
 
 $msg = '';
@@ -44,4 +44,4 @@ $rows = $pdo->query('SELECT * FROM products WHERE qty = 0 ORDER BY brand, model,
 <tr><td colspan="5">Nothing is sold out right now.</td></tr>
 <?php endif; ?>
 </table></div>
-<?php require '../includes/footer.php'; ?>
+<?php require '../includes/admin_footer.php'; ?>

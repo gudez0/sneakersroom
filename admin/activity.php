@@ -1,5 +1,5 @@
 <?php
-require '../includes/header.php';
+require '../includes/admin_header.php';
 $who = $_GET['who'] ?? '';
 $sql = 'SELECT * FROM activity_log' . (in_array($who, ['admin','customer','guest']) ? ' WHERE role = ?' : '') . ' ORDER BY id DESC LIMIT 300';
 $st = $pdo->prepare($sql);
@@ -19,4 +19,4 @@ $rows = $st->fetchAll();
 <tr><td><?= e($r['created_at']) ?></td><td><?= e($r['user_name']) ?></td><td><?= e($r['role']) ?></td><td><?= e($r['action']) ?></td><td><?= e($r['details']) ?></td></tr>
 <?php endforeach; if (!$rows): ?><tr><td colspan="5">No activity recorded yet.</td></tr><?php endif; ?>
 </table></div>
-<?php require '../includes/footer.php'; ?>
+<?php require '../includes/admin_footer.php'; ?>

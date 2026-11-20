@@ -1,28 +1,22 @@
 <?php
-require_once __DIR__ . '/auth.php';
-if (!empty($needLogin)) require_role('customer', '../login.php');
+// Customer pages now share the same shell (announcement bar, header, footer) as the rest of the site.
+require_once __DIR__ . '/layout.php';
+if (!empty($needLogin)) require_role('customer', BASE . 'login.php');
 $user = $_SESSION['user'] ?? null;
 $isCustomer = $user && $user['role'] === 'customer';
 $page = basename($_SERVER['PHP_SELF']);
+$titles = ['index.php' => 'Shop', 'dashboard.php' => 'My dashboard', 'orders.php' => 'My orders'];
+$pageTitle = $pageTitle ?? ($titles[$page] ?? 'Shop');
+snr_flash_begin();
+snr_page_start($pageTitle, $page === 'orders.php' ? 'orders' : 'shop');
 ?>
-<!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sneakers Room</title>
-<link rel="stylesheet" href="<?= BASE ?>assets/style.css">
-</head><body><div class="wrap">
-<h1>Sneakers Room</h1>
-<nav>
-<?php if ($isCustomer): ?><a href="dashboard.php" class="<?= $page==='dashboard.php'?'on':'' ?>">Dashboard</a><?php endif; ?>
-<a href="index.php" class="<?= $page==='index.php'?'on':'' ?>">Shop</a>
 <?php if ($isCustomer): ?>
-<a href="orders.php" class="<?= $page==='orders.php'?'on':'' ?>">My orders</a>
-<a href="../logout.php">Log out (<?= e($user['name']) ?>)</a>
-<?php elseif ($user): ?>
-<a href="../admin/dashboard.php">Admin dashboard</a>
-<a href="../logout.php">Log out</a>
-<?php else: ?>
-<a href="../login.php">Log in</a>
-<a href="../register.php">Register</a>
+<div class="coll"><div class="tabs">
+  <a href="<?= e(BASE) ?>customer/index.php" class="<?= $page === 'index.php' ? 'on' : '' ?>">Shop</a>
+  <a href="<?= e(BASE) ?>customer/dashboard.php" class="<?= $page === 'dashboard.php' ? 'on' : '' ?>">Dashboard</a>
+  <a href="<?= e(BASE) ?>customer/orders.php" class="<?= $page === 'orders.php' ? 'on' : '' ?>">My orders</a>
+</div></div>
 <?php endif; ?>
-</nav>
+<main class="page">
+  <div class="page-h"><h1><?= e($pageTitle) ?></h1></div>
+<?php snr_flash_show(); ?>

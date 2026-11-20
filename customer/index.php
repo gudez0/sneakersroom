@@ -1,4 +1,5 @@
 <?php
+$pageTitle = 'Shop';
 require '../includes/customer_header.php';
 $msg = ''; $err = '';
 if ($isCustomer) {
@@ -6,16 +7,18 @@ if ($isCustomer) {
 }
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$isCustomer) {
-        $err = 'Please log in or register as a customer to place an order.';
+        $err = 'Sign In or Sign Up as a customer to place an order.';
+    } elseif (!snr_csrf_ok()) {
+        $err = 'Your session expired. Please try again.';
     } else {
-        $pid = (int)$_POST['product_id']; $qty = max(1, (int)$_POST['qty']); $pay = $_POST['payment'];
+        $pid = (int)$_POST['product_id']; $qty = max(1, (int)$_POST['qty']); $pay = $_POST['payment'] ?? '';
         try {
-            if (!in_array($pay, ['GCash', 'Maya', 'COD (J&T)'])) throw new Exception('Choose a payment method.');
+            if (!in_array($pay, ['GCash', 'Maya', 'COD (J&T)'], true)) throw new Exception('Choose a payment method.');
             $pdo->beginTransaction();
             $p = $pdo->prepare('SELECT price FROM products WHERE id = ? FOR UPDATE'); $p->execute([$pid]);
             $price = $p->fetchColumn();
             $u = $pdo->prepare('UPDATE products SET qty = qty - ? WHERE id = ? AND qty >= ?'); $u->execute([$qty, $pid, $qty]);
-            if ($price === false || $u->rowCount() === 0) throw new Exception('Sorry, not enough stock for that quantity.');
+            if ($price === false || $u->rowCount() === 0) throw new Exception('Not enough stock for that qsnrntity.');
             $pdo->prepare('INSERT INTO customers (name,mobile,address,email) VALUES (?,?,?,?)')
                 ->execute([$me['name'], $me['mobile'], $me['address'], $me['email']]);
             $cid = $pdo->lastInsertId();
@@ -29,32 +32,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 $q = trim($_GET['q'] ?? '');
-$st = $pdo->prepare('SELECT * FROM products WHERE CONCAT(brand," ",model) LIKE ? ORDER BY brand, model, size');
+$st = $pdo->prepare('SELECT * FROM products WHERE CONCAT(brand," ",model) LIKE ? ORDER BY (qty = 0), brand, model, size');
 $st->execute(["%$q%"]);
 $rows = $st->fetchAll();
 ?>
-<?php if (!$user): ?><div class="msg ok">You are browsing as a guest. <a href="../login.php">Log in</a> or <a href="../register.php">register</a> to place an order.</div><?php endif; ?>
+<?php if (!$user): ?><div class="msg">Browsing as a guest. <a href="<?= e(BASE) ?>login.php"><b>Sign In</b></a> or <a href="<?= e(BASE) ?>Sign Up.php"><b>Sign Up</b></a> to place an order.</div><?php endif; ?>
 <?php if ($msg): ?><div class="msg ok"><?= e($msg) ?></div><?php endif; ?>
 <?php if ($err): ?><div class="msg err"><?= e($err) ?></div><?php endif; ?>
-<div class="card"><form method="get" class="grid">
-<label>Search shoes<input name="q" value="<?= e($q) ?>" placeholder="e.g. Air Force"></label>
-<label>&nbsp;<button>Search</button></label>
-</form></div>
-<div class="card"><table>
-<tr><th>Shoe</th><th>Size</th><th>Price</th><th>Availability</th><th>Order</th></tr>
-<?php foreach ($rows as $r): ?>
-<tr><td><?= e($r['brand'].' '.$r['model']) ?></td><td><?= e($r['size']) ?></td><td><?= peso($r['price']) ?></td><td><?= stock_tag($r['qty']) ?></td>
-<td>
-<?php if ($r['qty'] <= 0): ?>Unavailable
-<?php elseif ($isCustomer): ?>
-<form method="post" class="inline"><input type="hidden" name="product_id" value="<?= $r['id'] ?>">
-<input name="qty" type="number" min="1" max="<?= $r['qty'] ?>" value="1">
-<select name="payment"><option>GCash</option><option>Maya</option><option>COD (J&amp;T)</option></select>
-<button>Order</button></form>
-<?php elseif ($user): ?>Admins cannot place orders
-<?php else: ?><a href="../login.php">Log in to order</a>
-<?php endif; ?>
-</td></tr>
-<?php endforeach; if (!$rows): ?><tr><td colspan="5">No shoes found.</td></tr><?php endif; ?>
-</table></div>
+
+<form method="get" class="toolbar" style="padding:0 0 18px">
+  <input type="search" name="q" value="<?= e($q) ?>" placeholder="Search brand or model">
+  <button class="sm">Search</button>
+  <?php if ($q !== ''): ?><a class="btn ghost sm" href="index.php">Clear</a><?php endif; ?>
+  <span class="count"><?= count($rows) ?> listing<?= count($rows) === 1 ? '' : 's' ?></span>
+</form>
+
+<div class="pgrid" style="padding:0">
+<?php foreach ($rows as $r): $sold = (int)$r['qty'] <= 0; ?>
+  <div class="pc <?= $sold ? 'sold' : '' ?>">
+    <div class="pc-img"><?= snr_img($r) ?>
+      <?php if ($sold): ?><span class="pc-flag out">Out of stock</span>
+      <?php elseif ((int)$r['qty'] <= 3): ?><span class="pc-flag">Only <?= (int)$r['qty'] ?> left</span><?php endif; ?>
+    </div>
+    <div class="pc-name"><?= e($r['brand'] . ' ' . $r['model']) ?></div>
+    <div class="pc-meta">Size <?= e($r['size']) ?></div>
+    <div class="pc-price"><?= peso($r['price']) ?></div>
+    <?php if ($sold): ?>
+      <div class="pc-note">Currently unavailable</div>
+    <?php elseif ($isCustomer): ?>
+      <form method="post" class="pc-buy">
+        <input type="hidden" name="csrf" value="<?= e(snr_csrf()) ?>">
+        <input type="hidden" name="product_id" value="<?= (int)$r['id'] ?>">
+        <input name="qty" type="number" min="1" max="<?= (int)$r['qty'] ?>" value="1" aria-label="Qsnrntity">
+        <select name="payment" aria-label="Payment method"><option>GCash</option><option>Maya</option><option>COD (J&amp;T)</option></select>
+        <button>Order now</button>
+      </form>
+    <?php elseif ($user): ?><div class="pc-note">Admins cannot place orders</div>
+    <?php else: ?><div class="pc-note"><a href="<?= e(BASE) ?>login.php">Sign In to order</a></div>
+    <?php endif; ?>
+  </div>
+<?php endforeach; if (!$rows): ?><div class="empty">No sneakers match your search.</div><?php endif; ?>
+</div>
 <?php require '../includes/footer.php'; ?>

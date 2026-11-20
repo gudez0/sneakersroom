@@ -1,5 +1,5 @@
 <?php
-require '../includes/header.php';
+require '../includes/admin_header.php';
 $msg = ''; $err = ''; $me = (int)$_SESSION['user']['id'];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (($_POST['action'] ?? '') === 'add') {
@@ -51,4 +51,4 @@ $admins = $pdo->query("SELECT id,name,email FROM users WHERE role='admin' ORDER 
 <label>Confirm password<input name="confirm" type="password" required></label>
 <label>&nbsp;<button>Save admin</button></label>
 </form></div>
-<?php require '../includes/footer.php'; ?>
+<?php require '../includes/admin_footer.php'; ?>

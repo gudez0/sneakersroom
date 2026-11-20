@@ -13,4 +13,4 @@ $rows = $st->fetchAll();
 <td><?= e($r['payment_method']) ?></td><td><?= e($r['payment_status']) ?></td><td><?= e($r['delivery_status']) ?></td></tr>
 <?php endforeach; if (!$rows): ?><tr><td colspan="7">You have no orders yet. Visit the Shop to place one.</td></tr><?php endif; ?>
 </table></div>
-<?php require '../includes/footer.php'; ?>
+<?php require '../includes/customer_footer.php'; ?>

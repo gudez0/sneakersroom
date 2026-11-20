@@ -1,5 +1,5 @@
 <?php
-require '../includes/header.php';
+require '../includes/admin_header.php';
 $one = function ($sql) use ($pdo) { return $pdo->query($sql)->fetchColumn() ?: 0; };
 $paid = "payment_status='Paid'";
 $stats = [
@@ -11,7 +11,7 @@ $stats = [
   [$one('SELECT COUNT(*) FROM products WHERE qty = 0'), 'Sold-out items'],
   [$one("SELECT COUNT(*) FROM orders WHERE payment_status='Unpaid'"), 'Unpaid orders'],
   [$one("SELECT COUNT(*) FROM orders WHERE channel='Online' AND delivery_status <> 'Delivered'"), 'Deliveries in progress'],
-  [$one("SELECT COUNT(*) FROM users WHERE role='customer'"), 'Registered customers'],
+  [$one("SELECT COUNT(*) FROM users WHERE role='customer'"), 'Sign Uped customers'],
 ];
 
 // Sales for the last 7 days (bar chart)
@@ -64,4 +64,4 @@ $log  = $pdo->query('SELECT * FROM activity_log ORDER BY id DESC LIMIT 10')->fet
 <?php foreach ($log as $r): ?><tr><td><?= e(substr($r['created_at'],5,11)) ?></td><td><?= e($r['user_name']) ?> <small>(<?= e($r['role']) ?>)</small></td><td><?= e($r['action']) ?></td><td><?= e($r['details']) ?></td></tr>
 <?php endforeach; if (!$log): ?><tr><td colspan="4">No activity recorded yet.</td></tr><?php endif; ?>
 </table></div>
-<?php require '../includes/footer.php'; ?>
+<?php require '../includes/admin_footer.php'; ?>

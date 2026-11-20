@@ -1,5 +1,5 @@
 <?php
-require '../includes/header.php';
+require '../includes/admin_header.php';
 $msg = ''; $err = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ch = $_POST['channel']; $pay = $_POST['payment'];
@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $price = $p->fetchColumn();
             $u = $pdo->prepare('UPDATE products SET qty = qty - ? WHERE id = ? AND qty >= ?');
             $u->execute([$qty, $pid, $qty]);
-            if ($price === false || $u->rowCount() === 0) throw new Exception('Not enough stock for that quantity.');
+            if ($price === false || $u->rowCount() === 0) throw new Exception('Not enough stock for that qsnrntity.');
             $pdo->prepare('INSERT INTO customers (name,mobile,address,email) VALUES (?,?,?,?)')
                 ->execute([$name, $mobile, $addr, trim($_POST['email'])]);
             $cid = $pdo->lastInsertId();
@@ -43,8 +43,8 @@ $shoes = $pdo->query('SELECT * FROM products WHERE qty > 0 ORDER BY brand, model
 <label>Shoe<select name="product_id">
 <?php foreach ($shoes as $s): ?><option value="<?= $s['id'] ?>"><?= e($s['brand'].' '.$s['model'].', size '.$s['size'].' ('.$s['qty'].' left, '.peso($s['price']).')') ?></option><?php endforeach; ?>
 </select></label>
-<label>Quantity<input name="qty" type="number" min="1" value="1"></label>
+<label>Qsnrntity<input name="qty" type="number" min="1" value="1"></label>
 <label>Payment<select name="payment"><option>Cash</option><option>GCash</option><option>Maya</option><option>COD (J&amp;T)</option></select></label>
 <label>&nbsp;<button>Save order</button></label>
 </form></div>
-<?php require '../includes/footer.php'; ?>
+<?php require '../includes/admin_footer.php'; ?>

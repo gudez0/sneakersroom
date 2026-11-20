@@ -1,6 +1,5 @@
 <?php
 session_start();
-$wasAdmin = ($_SESSION['user']['role'] ?? '') === 'admin';
 
 // 1. Empty the session data
 $_SESSION = [];
@@ -14,5 +13,5 @@ if (ini_get('session.use_cookies')) {
 // 3. Destroy the session on the server
 session_destroy();
 
-header('Location: ' . ($wasAdmin ? 'admin/login.php' : 'login.php'));
+header('Location: login.php');
 exit;
