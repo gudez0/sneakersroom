@@ -119,7 +119,7 @@ function snr_page_start(string $title, string $active = ''): void {
     <nav class="nav-l">
       <?= $a('index.php', 'Home', 'home') ?>
       <?= $a('customer/index.php', 'Shop', 'shop') ?>
-      <?php if ($u && ($u['role'] ?? '') === 'admin'): ?><?= $a('admin/dashboard.php', 'Admin', 'admin') ?>
+      <?php if ($u && ($u['role'] ?? '') === 'admin'): ?><?= $a('admin/dashboard.php', 'Main Dashboard', 'admin') ?>
       <?php elseif ($u): ?><?= $a('customer/orders.php', 'My orders', 'orders') ?><?php endif; ?>
     </nav>
     <a class="brand" href="<?= e(BASE) ?>index.php"><?= e(SNR_STORE) ?></a>
