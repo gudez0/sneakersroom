@@ -16,10 +16,11 @@ $sql = 'SELECT * FROM products' . ($where ? ' WHERE ' . implode(' AND ', $where)
      . ' ORDER BY (qty = 0), ' . $orderBy;           // sold-out pairs always sink to the bottom
 $st = $pdo->prepare($sql); $st->execute($args);
 $items = $st->fetchAll();
+$groups = snr_group_products($items);   // the same model in different sizes/colours is one card
 
 $pairs  = (int)$pdo->query('SELECT COALESCE(SUM(qty),0) FROM products')->fetchColumn();
-$models = (int)$pdo->query('SELECT COUNT(*) FROM products')->fetchColumn();
-$brands = $pdo->query('SELECT brand, COUNT(*) AS n FROM products GROUP BY brand ORDER BY brand')->fetchAll();
+$models = (int)$pdo->query('SELECT COUNT(DISTINCT brand, model) FROM products')->fetchColumn();
+$brands = $pdo->query('SELECT brand, COUNT(DISTINCT model) AS n FROM products GROUP BY brand ORDER BY brand')->fetchAll();
 
 function tab_url(string $b, string $q, string $sort): string {
     $p = array_filter(['brand' => $b, 'q' => $q, 'sort' => $sort === 'new' ? '' : $sort], 'strlen');
@@ -53,30 +54,20 @@ snr_page_start('Home', 'home');
     <button class="sm">Search</button>
     <?php if ($q !== '' || $brand !== ''): ?><a class="btn ghost sm" href="index.php#shop">Clear</a><?php endif; ?>
   </form>
-  <div class="count"><?= count($items) ?> pair listing<?= count($items) === 1 ? '' : 's' ?></div>
+  <div class="count"><?= count($groups) ?> shoe<?= count($groups) === 1 ? '' : 's' ?></div>
 </div>
 
 <div class="pgrid">
-<?php foreach ($items as $p): $sold = (int)$p['qty'] <= 0; $lowq = !$sold && (int)$p['qty'] <= 3; ?>
-  <a class="pc <?= $sold ? 'sold' : '' ?>" href="customer/index.php">
-    <div class="pc-img">
-      <?= snr_img($p) ?>
-      <?php if ($sold): ?><span class="pc-flag out">Out of stock</span>
-      <?php elseif ($lowq): ?><span class="pc-flag">Only <?= (int)$p['qty'] ?> left</span><?php endif; ?>
-    </div>
-    <div class="pc-name"><?= e($p['brand'] . ' ' . $p['model']) ?></div>
-    <div class="pc-meta">Size <?= e((string)$p['size']) ?></div>
-    <div class="pc-price"><?= peso($p['price']) ?></div>
-  </a>
-<?php endforeach; if (!$items): ?>
+<?php foreach ($groups as $g) echo snr_model_card($g); ?>
+<?php if (!$groups): ?>
   <div class="empty"><?= ($q !== '' || $brand !== '') ? 'No sneakers match your search.' : 'No sneakers listed yet. Check back soon.' ?></div>
 <?php endif; ?>
 </div>
 
 <?php if (!$user): ?>
 <section class="band"><div class="band-in">
-  <h3>Browse as a guest.<br>Sign Up to order &amp; track delivery.</h3>
-  <div><a class="btn" href="Sign Up.php">Create account</a> <a class="btn ghost" href="login.php">Sign In</a></div>
+  <h3>Browse as a guest.<br>Register to order &amp; track delivery.</h3>
+  <div><a class="btn" href="register.php">Create account</a> <a class="btn ghost" href="login.php">Log in</a></div>
 </div></section>
 <?php endif; ?>
 

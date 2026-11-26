@@ -21,15 +21,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $role = 'customer'; // admin accounts are created only through admin_setup.php
             $pdo->prepare('INSERT INTO users (name,email,mobile,address,password_hash,role) VALUES (?,?,?,?,?,?)')
                 ->execute([$old['name'], $old['email'], $old['mobile'], $old['address'], password_hash($pw, PASSWORD_DEFAULT), $role]);
-            log_activity($pdo, 'Sign Uped account', $old['name'] . ' (' . $old['email'] . ') as ' . $role);
-            header('Location: login.php?new=1'); exit;
+            log_activity($pdo, 'Registered account', $old['name'] . ' (' . $old['email'] . ') as ' . $role);
+            $_SESSION['snr_flash'] = ['ok' => 'Account created. You can log in now.', 'err' => ''];
+            header('Location: login.php'); exit;
         } catch (PDOException $x) {
-            $err = ($x->errorInfo[1] ?? 0) == 1062 ? 'That email is already Sign Uped.' : 'Could not create the account. Please try again.';
+            $err = ($x->errorInfo[1] ?? 0) == 1062 ? 'That email is already registered.' : 'Could not create the account. Please try again.';
         }
     }
 }
 
-snr_page_start('Sign Up', 'Sign Up');
+snr_page_start('Register', 'register');
 ?>
 <main class="auth">
   <div class="eyebrow">Join</div>
@@ -43,8 +44,8 @@ snr_page_start('Sign Up', 'Sign Up');
     <label>Delivery address<input name="address" value="<?= e($old['address']) ?>" autocomplete="street-address" required></label>
     <label>Password (8+ characters)<input name="password" type="password" autocomplete="new-password" required></label>
     <label>Confirm password<input name="confirm" type="password" autocomplete="new-password" required></label>
-    <button>Sign Up</button>
-    <p>Already Sign Uped? <a href="login.php">Sign In</a></p>
+    <button>Register</button>
+    <p>Already registered? <a href="login.php">Log in</a></p>
     <p><a href="index.php#shop">Just browsing? View the shop</a></p>
   </form>
 </main>

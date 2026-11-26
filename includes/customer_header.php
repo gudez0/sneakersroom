@@ -18,5 +18,6 @@ snr_page_start($pageTitle, $page === 'orders.php' ? 'orders' : 'shop');
 </div></div>
 <?php endif; ?>
 <main class="page">
-  <div class="page-h"><h1><?= e($pageTitle) ?></h1></div>
+<?php if (empty($bare)): ?>  <div class="page-h"><h1><?= e($pageTitle) ?></h1></div>
+<?php endif; ?>
 <?php snr_flash_show(); ?>

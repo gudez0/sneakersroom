@@ -1,17 +1,12 @@
 <?php
 session_start();
 
-// 1. Empty the session data
+// Clear everything the visitor had in the session, then give them a fresh one.
 $_SESSION = [];
+session_regenerate_id(true);
 
-// 2. Delete the session cookie in the browser
-if (ini_get('session.use_cookies')) {
-    $p = session_get_cookie_params();
-    setcookie(session_name(), '', time() - 42000, $p['path'], $p['domain'], $p['secure'], $p['httponly']);
-}
-
-// 3. Destroy the session on the server
-session_destroy();
+// One-time message, shown on the login page.
+$_SESSION['snr_flash'] = ['ok' => 'You have been logged out.', 'err' => ''];
 
 header('Location: login.php');
 exit;
